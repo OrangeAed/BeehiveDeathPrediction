@@ -10,7 +10,6 @@ from TemperatureAnalysis import death_info
 from MongoUtils.mongo_helper import ClientSessionRefresh
 
 
-
 def make_dataframes(hives, deaths, hives_that_survived):
     survived_raw_values = {}
     survived_prop_values = {}
