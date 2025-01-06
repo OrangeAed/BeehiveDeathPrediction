@@ -1,7 +1,5 @@
-from datetime import datetime
 from TemperatureAnalysis.collect_data import CollectData
-from TemperatureAnalysis import death_info
-from scipy.stats import ttest_ind, ttest_rel
+import death_info
 import matplotlib.pyplot as plt
 import pandas as pd
 

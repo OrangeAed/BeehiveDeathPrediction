@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from TemperatureAnalysis.collect_data import CollectData
-from TemperatureAnalysis import death_info
+import death_info
 from MongoUtils.mongo_helper import ClientSessionRefresh
 
 
@@ -216,9 +216,10 @@ if __name__ == "__main__":
         death_estimate = True
         jefferson_hives = False
 
-        a, b, c, d, e, survived_dfs, died_dfs = make_dataframes(death_info.get_2022_hives(jefferson_hives=jefferson_hives),
-                                                                death_info.get_2022_deaths_late(jefferson_hives),
-                                                                death_info.get_2022_survived())
+        a, b, c, d, e, survived_dfs, died_dfs = make_dataframes(
+            death_info.get_2022_hives(jefferson_hives=jefferson_hives),
+            death_info.get_2022_deaths_late(jefferson_hives),
+            death_info.get_2022_survived())
 
         s_mean, s_med, s_std, d_mean, d_med, d_std, stat, p = analyze_temperature_std(survived_dfs, died_dfs)
         print(f"Survived Mean: {s_mean}")

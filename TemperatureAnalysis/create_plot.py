@@ -18,7 +18,7 @@ class CreatePlot:
         return df
 
     def get_dataframe_avg_by_day(self, df: pd.DataFrame) -> pd.DataFrame:
-        # Get the data]
+        # Get the data
 
         df = self.collect_data.get_temp_dataframe_averaged_by_day(df)
 
