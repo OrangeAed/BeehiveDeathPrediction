@@ -34,7 +34,7 @@ class CollectData:
                 self.client = MongoHelper.connect_to_remote_client(
                     username=next(csv_reader)[0],
                     password=next(csv_reader)[0],
-                    client='beeDB'
+                    # client='beeDB'
                 )
             else:
                 self.client = MongoClient('mongo-mais.cs.appstate.edu', 27017)
