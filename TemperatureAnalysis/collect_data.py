@@ -26,15 +26,18 @@ def get_sister_hive(hive_name: str) -> str:
 
 
 class CollectData:
-    def __init__(self):
+    def __init__(self, is_on_server: bool = True):
         # Connect to MongoDB
         with open("../auth.csv") as f:
             csv_reader = csv.reader(f, delimiter="\n")
-            self.client = MongoHelper.connect_to_remote_client(
-                username=next(csv_reader)[0],
-                password=next(csv_reader)[0],
-                client='beeDB'
-            )
+            if not is_on_server:
+                self.client = MongoHelper.connect_to_remote_client(
+                    username=next(csv_reader)[0],
+                    password=next(csv_reader)[0],
+                    client='beeDB'
+                )
+            else:
+                self.client = MongoClient('mongo-mais.cs.appstate.edu', 27017)
 
         self.db = self.client['beeDB']
         self.dc = self.client['beeDC']
@@ -144,5 +147,7 @@ class CollectData:
 
 if __name__ == "__main__":
     cd = CollectData()
-    df = cd.csv_to_dataframe("temp_delta_trials.csv")
-    records = cd.dataframe_to_dict(df)
+    df = cd.get_temp_dataframe("AppMAIS1L")
+    df = cd.get_temp_dataframe_averaged_by_day(df)
+    # df = cd.csv_to_dataframe("temp_delta_trials.csv")
+    # records = cd.dataframe_to_dict(df)
