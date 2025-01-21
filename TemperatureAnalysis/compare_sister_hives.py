@@ -18,11 +18,8 @@ def get_sister_dataframes(hives: list[tuple[str, str]], times_of_death, avg_by_d
     for surviving_hive, died_hive in hives:
         end_date = times_of_death[died_hive]
         start_date = max(datetime(2022, 4, 10), end_date - pd.Timedelta(days=90))
-        surviving_df = cd.get_temp_dataframe(surviving_hive, start_date, end_date)
-        died_df = cd.get_temp_dataframe(died_hive, start_date, end_date)
-        if avg_by_day:
-            surviving_df = cd.get_temp_dataframe_averaged_by_day(surviving_df)
-            died_df = cd.get_temp_dataframe_averaged_by_day(died_df)
+        surviving_df = cd.get_temp_dataframe(surviving_hive, start_date, end_date, avg_by_day)
+        died_df = cd.get_temp_dataframe(died_hive, start_date, end_date, avg_by_day)
         sister_hives.append((surviving_df, died_df))
 
     return sister_hives
