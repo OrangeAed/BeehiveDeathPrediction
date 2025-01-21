@@ -1,9 +1,12 @@
+import os
+
 import pymongo
 from pymongo import MongoClient
 import csv
 import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
+import death_info
 
 from MongoUtils.mongo_helper import MongoHelper, ClientSessionRefresh
 
@@ -34,7 +37,7 @@ class CollectData:
                 self.client = MongoHelper.connect_to_remote_client(
                     username=next(csv_reader)[0],
                     password=next(csv_reader)[0],
-                    # client='beeDB'
+                    client='beeDB'
                 )
             else:
                 self.client = MongoClient('mongo-mais.cs.appstate.edu', 27017)
@@ -106,16 +109,27 @@ class CollectData:
         )
 
         # Select required columns
-        final_df = merged_df[["TimeStamp", "Temperature", temp_field_name, "Humidity"]]
-        final_df.rename(columns={
-            "TimeStamp": "Time",
-            "Temperature": "InternalTemperature",
-            temp_field_name: "ExternalTemperature"
-        }, inplace=True)
+        # final_df = merged_df[["TimeStamp", "Temperature", temp_field_name]]
+        # final_df.rename(columns={
+        #     "TimeStamp": "Time",
+        #     "Temperature": "InternalTemperature",
+        #     temp_field_name: "ExternalTemperature"
+        # }, inplace=True)
+        #
+        # # Calculate the difference
+        # final_df["TemperatureDifference"] = final_df["InternalTemperature"] - final_df["ExternalTemperature"]
+        # final_df["ProportionalDifference"] = final_df["TemperatureDifference"] / final_df["ExternalTemperature"]
 
-        # Calculate the difference
-        final_df["TemperatureDifference"] = final_df["InternalTemperature"] - final_df["ExternalTemperature"]
-        final_df["ProportionalDifference"] = final_df["TemperatureDifference"] / final_df["ExternalTemperature"]
+        # Select required columns
+        final_df = merged_df.loc[:, ["TimeStamp", "Temperature", temp_field_name]]
+
+        # Rename columns using .loc to avoid SettingWithCopyWarning
+        final_df.loc[:, "Time"] = final_df["TimeStamp"]
+        final_df.loc[:, "InternalTemperature"] = final_df["Temperature"]
+        final_df.loc[:, "ExternalTemperature"] = final_df[temp_field_name]
+
+        # Drop the original columns to avoid confusion
+        final_df = final_df.drop(columns=["TimeStamp", "Temperature", temp_field_name])
 
         return final_df
 
@@ -146,8 +160,22 @@ class CollectData:
 
 
 if __name__ == "__main__":
-    cd = CollectData()
-    df = cd.get_temp_dataframe("AppMAIS1L")
-    df = cd.get_temp_dataframe_averaged_by_day(df)
-    # df = cd.csv_to_dataframe("temp_delta_trials.csv")
-    # records = cd.dataframe_to_dict(df)
+    cd = CollectData(True)
+    hives = death_info.get_2022_hives(True)
+    print("Current working directory:", os.getcwd())
+    print("Hives to process:", hives)
+
+    if not os.path.exists("data"):
+        os.makedirs("data")
+        print("Created 'data' directory")
+
+    for hive in hives:
+        try:
+            df = cd.get_temp_dataframe(hive)
+            df = cd.get_temp_dataframe_averaged_by_day(df)
+            csv_filename = f"data/{hive}.csv"
+            cd.dataframe_to_csv(df, csv_filename)
+            if os.path.exists(csv_filename):
+                print(f"Created CSV file: {csv_filename}")
+        except Exception as e:
+            print(f"Error processing hive {hive}: {e}")
