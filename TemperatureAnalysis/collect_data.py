@@ -31,16 +31,10 @@ def get_sister_hive(hive_name: str) -> str:
 class CollectData:
     def __init__(self, is_on_server: bool = True):
         # Connect to MongoDB
-        with open("../auth.csv") as f:
-            csv_reader = csv.reader(f, delimiter="\n")
-            if not is_on_server:
-                self.client = MongoHelper.connect_to_remote_client(
-                    username=next(csv_reader)[0],
-                    password=next(csv_reader)[0],
-                    client='beeDB'
-                )
-            else:
-                self.client = MongoClient('mongo-mais.cs.appstate.edu', 27017)
+        if not is_on_server:
+            self.client = None
+        else:
+            self.client = MongoClient('mongo-mais.cs.appstate.edu', 27017)
 
         self.db = self.client['beeDB']
         self.dc = self.client['beeDC']
@@ -58,7 +52,15 @@ class CollectData:
 
         return [record["HiveName"] for record in cursor if include_hivename(record["HiveName"])]
 
-    def get_temp_dataframe(self, hivename: str, start_date: datetime = None, end_date: datetime = None) -> pd.DataFrame:
+    def get_temp_dataframe(self, hivename: str, start_date: datetime = None, end_date: datetime = None,
+                           averaged_by_day: bool = False) -> pd.DataFrame:
+        # if done locally, use the csv files
+        if not self.client:
+            if averaged_by_day:
+                return self.csv_to_dataframe(f"data/averaged/{hivename}.csv")
+            else:
+                return self.csv_to_dataframe(f"data/not_averaged/{hivename}.csv")
+
         # Query TemperatureHumidity collection
         internal_temp = self.db['TemperatureHumidity']
         query = {"HiveName": hivename}
@@ -131,6 +133,8 @@ class CollectData:
         # Drop the original columns to avoid confusion
         final_df = final_df.drop(columns=["TimeStamp", "Temperature", temp_field_name])
 
+        if averaged_by_day:
+            final_df = self.get_temp_dataframe_averaged_by_day(final_df)
         return final_df
 
     def get_temp_dataframe_averaged_by_day(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -172,7 +176,7 @@ if __name__ == "__main__":
     for hive in hives:
         try:
             df = cd.get_temp_dataframe(hive)
-            df = cd.get_temp_dataframe_averaged_by_day(df)
+            # df = cd.get_temp_dataframe_averaged_by_day(df)
             csv_filename = f"data/{hive}.csv"
             cd.dataframe_to_csv(df, csv_filename)
             if os.path.exists(csv_filename):
