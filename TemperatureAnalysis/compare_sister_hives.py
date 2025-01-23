@@ -1,9 +1,4 @@
 #%%
-import importlib
-from TemperatureAnalysis import collect_data
-
-# Reload the collect_data module to ensure updates are recognized
-importlib.reload(collect_data)
 
 from datetime import datetime
 from scipy.stats import ttest_rel, mannwhitneyu

@@ -6,7 +6,6 @@ import csv
 import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
-import death_info
 
 from MongoUtils.mongo_helper import MongoHelper, ClientSessionRefresh
 
@@ -165,21 +164,21 @@ class CollectData:
 
 if __name__ == "__main__":
     cd = CollectData(True)
-    hives = death_info.get_2022_hives(True)
-    print("Current working directory:", os.getcwd())
-    print("Hives to process:", hives)
-
-    if not os.path.exists("data"):
-        os.makedirs("data")
-        print("Created 'data' directory")
-
-    for hive in hives:
-        try:
-            df = cd.get_temp_dataframe(hive)
-            # df = cd.get_temp_dataframe_averaged_by_day(df)
-            csv_filename = f"data/{hive}.csv"
-            cd.dataframe_to_csv(df, csv_filename)
-            if os.path.exists(csv_filename):
-                print(f"Created CSV file: {csv_filename}")
-        except Exception as e:
-            print(f"Error processing hive {hive}: {e}")
+    # hives = death_info.get_2022_hives(True)
+    # print("Current working directory:", os.getcwd())
+    # print("Hives to process:", hives)
+    #
+    # if not os.path.exists("data"):
+    #     os.makedirs("data")
+    #     print("Created 'data' directory")
+    #
+    # for hive in hives:
+    #     try:
+    #         df = cd.get_temp_dataframe(hive)
+    #         # df = cd.get_temp_dataframe_averaged_by_day(df)
+    #         csv_filename = f"data/{hive}.csv"
+    #         cd.dataframe_to_csv(df, csv_filename)
+    #         if os.path.exists(csv_filename):
+    #             print(f"Created CSV file: {csv_filename}")
+    #     except Exception as e:
+    #         print(f"Error processing hive {hive}: {e}")
