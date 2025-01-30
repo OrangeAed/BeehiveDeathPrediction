@@ -40,12 +40,6 @@ def plot_sister_hives(sister_hives: list[tuple[pd.DataFrame, pd.DataFrame]], hiv
         
         plt.show()
 
-# sister_hives = death_info.get_2022_opposing_pairs()
-sister_hives = death_info.get_2022_all_pairs()
-times_of_death = death_info.get_2022_deaths_early()
-
-cd = CollectData()
-sister_hives_dfs = get_sister_dataframes(sister_hives, times_of_death, True)
 
 #%%
 def test_difference(survived: pd.DataFrame, died: pd.DataFrame):
@@ -73,36 +67,7 @@ def combine_p_values(p_values):
     combined_p_value = chi2.sf(chi2_stat, df)
     return combined_p_value
 
-results = []
-print ("\nT-Test Results\n")
-for i in range(len(sister_hives_dfs)):
-    # print(f"Test for {sister_hives[i][0]} vs {sister_hives[i][1]}")
-    # sister_hives_dfs[i][0].dropna(inplace=True)
-    # sister_hives_dfs[i][1].dropna(inplace=True)
-    # if len(sister_hives_dfs[i][0]) != len(sister_hives_dfs[i][1]):
-    #     print(f"{sister_hives[i][0]} and {sister_hives[i][1]} have different lengths")
-    #     continue
 
-    sister_hives_dfs[i][0]['TemperatureDifference'] = sister_hives_dfs[i][0]['TemperatureDifference'].abs()
-    sister_hives_dfs[i][1]['TemperatureDifference'] = sister_hives_dfs[i][1]['TemperatureDifference'].abs()
-    stat_temp, p_value_temp, stat_humid, p_value_humid = test_difference(sister_hives_dfs[i][0], sister_hives_dfs[i][1])
-    combined_p_value = combine_p_values([p_value_temp, p_value_humid])
-
-    results.append({
-        "Surviving Hive": sister_hives[i][0],
-        "Died Hive": sister_hives[i][1],
-        "Temperature Statistic": stat_temp,
-        "Temperature p-value": p_value_temp,
-        "Humidity Statistic": stat_humid,
-        "Humidity p-value": p_value_humid,
-        "Combined p-value": combined_p_value
-    })
-
-# Convert results to DataFrame
-results_df = pd.DataFrame(results)
-
-# Print the DataFrame in a tabular format
-print(results_df.to_string(index=False))
 #%%
 # plot_sister_hives(sister_hives_dfs, sister_hives)
 
@@ -134,7 +99,6 @@ def plot_temperature_and_humidity_difference(sister_hives: list[tuple[pd.DataFra
         plt.tight_layout()
         plt.show()
 
-plot_temperature_and_humidity_difference(sister_hives_dfs, sister_hives)
 #%%
 def normalize_days(sister_hives: list[tuple[pd.DataFrame, pd.DataFrame]], times_of_death: list[pd.Timestamp]):
     normalized_hives = []
@@ -179,22 +143,64 @@ def perform_mann_whitney_test(sister_hives: list[tuple[pd.DataFrame, pd.DataFram
 
 
 
-results = []
-print("\nMann-Whitney U Test Results\n")
-for i, (stat_temp, p_value_temp, stat_humid, p_value_humid) in enumerate(perform_mann_whitney_test(sister_hives_dfs)):
-    combined_p_value = combine_p_values([p_value_temp, p_value_humid])
-    results.append({
-        "Surviving Hive": sister_hives[i][0],
-        "Died Hive": sister_hives[i][1],
-        "Temperature Statistic": stat_temp,
-        "Temperature p-value": p_value_temp,
-        "Humidity Statistic": stat_humid,
-        "Humidity p-value": p_value_humid,
-        "Combined p-value": combined_p_value
-    })
+if __name__ == "__main__":
+    # sister_hives = death_info.get_2022_opposing_pairs()
+    sister_hives = death_info.get_2022_all_pairs()
+    times_of_death = death_info.get_2022_deaths_early()
 
-# Convert results to DataFrame
-results_df = pd.DataFrame(results)
+    cd = CollectData()
+    sister_hives_dfs = get_sister_dataframes(sister_hives, times_of_death, True)
 
-# Print the DataFrame in a tabular format
-print(results_df.to_string(index=False))
+    results = []
+    print("\nT-Test Results\n")
+    for i in range(len(sister_hives_dfs)):
+        # print(f"Test for {sister_hives[i][0]} vs {sister_hives[i][1]}")
+        # sister_hives_dfs[i][0].dropna(inplace=True)
+        # sister_hives_dfs[i][1].dropna(inplace=True)
+        # if len(sister_hives_dfs[i][0]) != len(sister_hives_dfs[i][1]):
+        #     print(f"{sister_hives[i][0]} and {sister_hives[i][1]} have different lengths")
+        #     continue
+
+        sister_hives_dfs[i][0]['TemperatureDifference'] = sister_hives_dfs[i][0]['TemperatureDifference'].abs()
+        sister_hives_dfs[i][1]['TemperatureDifference'] = sister_hives_dfs[i][1]['TemperatureDifference'].abs()
+        stat_temp, p_value_temp, stat_humid, p_value_humid = test_difference(sister_hives_dfs[i][0],
+                                                                             sister_hives_dfs[i][1])
+        combined_p_value = combine_p_values([p_value_temp, p_value_humid])
+
+        results.append({
+            "Surviving Hive": sister_hives[i][0],
+            "Died Hive": sister_hives[i][1],
+            "Temperature Statistic": stat_temp,
+            "Temperature p-value": p_value_temp,
+            "Humidity Statistic": stat_humid,
+            "Humidity p-value": p_value_humid,
+            "Combined p-value": combined_p_value
+        })
+    # Convert results to DataFrame
+    results_df = pd.DataFrame(results)
+    # Print the DataFrame in a tabular format
+    print(results_df.to_string(index=False))
+
+
+    plot_temperature_and_humidity_difference(sister_hives_dfs, sister_hives)
+
+    results = []
+    print("\nMann-Whitney U Test Results\n")
+    for i, (stat_temp, p_value_temp, stat_humid, p_value_humid) in enumerate(
+            perform_mann_whitney_test(sister_hives_dfs)):
+        combined_p_value = combine_p_values([p_value_temp, p_value_humid])
+        results.append({
+            "Surviving Hive": sister_hives[i][0],
+            "Died Hive": sister_hives[i][1],
+            "Temperature Statistic": stat_temp,
+            "Temperature p-value": p_value_temp,
+            "Humidity Statistic": stat_humid,
+            "Humidity p-value": p_value_humid,
+            "Combined p-value": combined_p_value
+        })
+
+    # Convert results to DataFrame
+    results_df = pd.DataFrame(results)
+
+    # Print the DataFrame in a tabular format
+    print(results_df.to_string(index=False))
