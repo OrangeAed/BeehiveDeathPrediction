@@ -1,7 +1,4 @@
-#%%
-
 from datetime import datetime
-
 import numpy as np
 from scipy.stats import ttest_rel, mannwhitneyu, chi2
 from TemperatureAnalysis.collect_data import CollectData
@@ -9,7 +6,8 @@ import death_info
 import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.dates import DateFormatter
-#%%
+
+
 def get_sister_dataframes(hives: list[tuple[str, str]], times_of_death, avg_by_day: bool = False, year: int = 2022) \
         -> list[tuple[pd.DataFrame, pd.DataFrame]]:
     sister_hives = []
@@ -41,7 +39,6 @@ def plot_sister_hives(sister_hives: list[tuple[pd.DataFrame, pd.DataFrame]], hiv
         plt.show()
 
 
-#%%
 def test_difference(survived: pd.DataFrame, died: pd.DataFrame):
     # Drop NA values from both arrays
     survived = survived.dropna(subset=['TemperatureDifference', 'HumidityDifference'])
@@ -58,6 +55,7 @@ def test_difference(survived: pd.DataFrame, died: pd.DataFrame):
 
     return stat_temp, p_value_temp, stat_humid, p_value_humid
 
+
 def combine_p_values(p_values):
     # Calculate the test statistic
     chi2_stat = -2 * np.sum(np.log(p_values))
@@ -67,9 +65,6 @@ def combine_p_values(p_values):
     combined_p_value = chi2.sf(chi2_stat, df)
     return combined_p_value
 
-
-#%%
-# plot_sister_hives(sister_hives_dfs, sister_hives)
 
 def plot_temperature_and_humidity_difference(sister_hives: list[tuple[pd.DataFrame, pd.DataFrame]], hive_names: list[tuple[str, str]]):
     for i in range(len(sister_hives)):
@@ -99,7 +94,7 @@ def plot_temperature_and_humidity_difference(sister_hives: list[tuple[pd.DataFra
         plt.tight_layout()
         plt.show()
 
-#%%
+
 def normalize_days(sister_hives: list[tuple[pd.DataFrame, pd.DataFrame]], times_of_death: list[pd.Timestamp]):
     normalized_hives = []
     for i, (surviving_df, died_df) in enumerate(sister_hives):
@@ -113,10 +108,7 @@ def normalize_days(sister_hives: list[tuple[pd.DataFrame, pd.DataFrame]], times_
 
     return normalized_hives
 
-# Example usage
-# normalized_sister_hives = normalize_days(sister_hives_dfs, times_of_death)
-# plot_temperature_difference(normalized_sister_hives, sister_hives)
-#%%
+
 def perform_mann_whitney_test(sister_hives: list[tuple[pd.DataFrame, pd.DataFrame]]):
     results = []
     for surviving_df, died_df in sister_hives:

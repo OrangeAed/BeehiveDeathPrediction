@@ -110,18 +110,6 @@ class CollectData:
         )
 
         # Select required columns
-        # final_df = merged_df[["TimeStamp", "Temperature", temp_field_name]]
-        # final_df.rename(columns={
-        #     "TimeStamp": "Time",
-        #     "Temperature": "InternalTemperature",
-        #     temp_field_name: "ExternalTemperature"
-        # }, inplace=True)
-        #
-        # # Calculate the difference
-        # final_df["TemperatureDifference"] = final_df["InternalTemperature"] - final_df["ExternalTemperature"]
-        # final_df["ProportionalTemperatureDifference"] = final_df["TemperatureDifference"] / final_df["ExternalTemperature"]
-
-        # Select required columns
         final_df = merged_df.loc[:, ["TimeStamp", "Temperature", temp_field_name, "Humidity_internal", "Humidity_external"]]
 
         # Rename columns using .loc to avoid SettingWithCopyWarning
