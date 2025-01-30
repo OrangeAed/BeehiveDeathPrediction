@@ -208,7 +208,7 @@ def get_2023_deaths_late(jefferson_hives: bool = True, belgium_hives: bool = Fal
     return deaths
 
 
-def get_2023_opposing_pairs(jefferson_hives: bool = True, belgium_hives: bool = False):
+def get_2023_opposing_pairs(jefferson_hives: bool = True, belgium_hives: bool = False) -> list[tuple[str, str]]:
     pairs = [
         ("AppMAIS5LB", "AppMAIS5R"),
         ("AppMAIS8R", "AppMAIS8LB"),
@@ -218,3 +218,19 @@ def get_2023_opposing_pairs(jefferson_hives: bool = True, belgium_hives: bool = 
         pairs += [
             ("AppMAIS1LB", "AppMAIS1R")
         ]
+    return pairs
+
+
+def get_start_and_end_dates(year: int):
+    if year == 2022:
+        return {
+            "start": datetime(2022, 4, 10),
+            "end": datetime(2023, 4, 20)
+        }
+    elif year == 2023:
+        return {
+            "start": datetime(2023, 4, 22),
+            "end": datetime(2024, 4, 6)
+        }
+    else:
+        raise ValueError("Year must be 2022 or 2023")

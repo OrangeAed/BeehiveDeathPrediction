@@ -10,11 +10,13 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.dates import DateFormatter
 #%%
-def get_sister_dataframes(hives: list[tuple[str, str]], times_of_death, avg_by_day: bool = False) -> list[tuple[pd.DataFrame, pd.DataFrame]]:
+def get_sister_dataframes(hives: list[tuple[str, str]], times_of_death, avg_by_day: bool = False, year: int = 2022) \
+        -> list[tuple[pd.DataFrame, pd.DataFrame]]:
     sister_hives = []
+    start_and_end_dates = death_info.get_start_and_end_dates(year)
     for surviving_hive, died_hive in hives:
-        end_date = times_of_death[died_hive] if died_hive in times_of_death else datetime(2023, 4, 20)
-        start_date = max(datetime(2022, 4, 10), end_date - pd.Timedelta(days=90))
+        end_date = times_of_death[died_hive] if died_hive in times_of_death else start_and_end_dates["end"]
+        start_date = max(start_and_end_dates["start"], end_date - pd.Timedelta(days=90))
         surviving_df = cd.get_temp_dataframe(surviving_hive, start_date, end_date, avg_by_day, True)
         died_df = cd.get_temp_dataframe(died_hive, start_date, end_date, avg_by_day, True)
         sister_hives.append((surviving_df, died_df))
