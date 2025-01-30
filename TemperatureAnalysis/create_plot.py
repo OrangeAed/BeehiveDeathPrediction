@@ -11,18 +11,20 @@ class CreatePlot:
         # Initialize CollectData object
         self.collect_data = CollectData()
 
+
     def get_dataframe(self, hivename: str, start_date: datetime = None, end_date: datetime = None) -> pd.DataFrame:
         # Get the data
         df = self.collect_data.get_temp_dataframe(hivename, start_date, end_date)
 
         return df
 
-    def get_dataframe_avg_by_day(self, df: pd.DataFrame) -> pd.DataFrame:
-        # Get the data
 
+    def get_dataframe_avg_by_day(self, df: pd.DataFrame) -> pd.DataFrame:
+        # Wrapper function to average the data by day
         df = self.collect_data.get_temp_dataframe_averaged_by_day(df)
 
         return df
+
 
     def plot_internal_vs_external_temperature(self, df: pd.DataFrame, survived: bool = False, hivename: str = '') -> None:
         # Plot the data
@@ -36,11 +38,12 @@ class CreatePlot:
         plt.title(f"{hivename} Temperature Comparison {'(Survived)' if survived else ''}")
         plt.legend()
         plt.show()
-        
+
+
     def plot_temperature_differental_ratio(self, df: pd.DataFrame, survived: bool = False, hivename: str = '') -> None:
         # Plot the data
         plt.figure(figsize=(10, 6))
-        plt.plot(df["Time"], df["ProportionalDifference"],
+        plt.plot(df["Time"], df["ProportionalTemperatureDifference"],
                  label="Temperature Difference / External Temperature")
         plt.axhline(y=0, color='gray', linestyle='--')  # Add a dotted line at the x-axis
         plt.xlabel("Time")
@@ -48,6 +51,7 @@ class CreatePlot:
         plt.title(f"{hivename} Temperature Difference Ratio Over Time {'(Survived)' if survived else ''}")
         plt.legend()
         plt.show()
+
 
     def make_plots(self, data: Dict[str, any], raw_difference: bool = False,
                    proportional_difference: bool = False, avg_by_day: bool = False) -> None:
@@ -112,5 +116,3 @@ if __name__ == "__main__":
     }
 
     plotter.make_plots(data, raw_difference=True, proportional_difference=True, avg_by_day=True)
-    
-    

@@ -39,12 +39,12 @@ def make_dataframes(hives, deaths, hives_that_survived):
 
         if survived:
             survived_raw_values[hive] = df['TemperatureDifference'].mean()
-            survived_prop_values[hive] = df['ProportionalDifference'].mean()
+            survived_prop_values[hive] = df['ProportionalTemperatureDifference'].mean()
             survived_dataframes[hive] = df
 
         else:
             died_raw_values[hive] = df['TemperatureDifference'].mean()
-            died_prop_values[hive] = df['ProportionalDifference'].mean()
+            died_prop_values[hive] = df['ProportionalTemperatureDifference'].mean()
             died_dataframes[hive] = df
 
 

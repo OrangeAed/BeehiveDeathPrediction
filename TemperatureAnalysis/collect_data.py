@@ -52,7 +52,7 @@ class CollectData:
         return [record["HiveName"] for record in cursor if include_hivename(record["HiveName"])]
 
     def get_temp_dataframe(self, hivename: str, start_date: datetime = None, end_date: datetime = None,
-                           averaged_by_day: bool = False) -> pd.DataFrame:
+                           averaged_by_day: bool = False, include_humid: bool = False) -> pd.DataFrame:
         # if done locally, use the csv files
         if not self.client:
             if averaged_by_day:
@@ -87,7 +87,7 @@ class CollectData:
         }))
         temp_field_name = "ExternalTemperatureBoone"
 
-        if not external_records:
+        if not external_records or include_humid:
             external_records = list(self.dc['HiveWeather'].find({
                 "HiveName": "AppMAIS1L",
                 "TimeStamp": {"$gte": oldest_date, "$lte": newest_date}
@@ -119,15 +119,23 @@ class CollectData:
         #
         # # Calculate the difference
         # final_df["TemperatureDifference"] = final_df["InternalTemperature"] - final_df["ExternalTemperature"]
-        # final_df["ProportionalDifference"] = final_df["TemperatureDifference"] / final_df["ExternalTemperature"]
+        # final_df["ProportionalTemperatureDifference"] = final_df["TemperatureDifference"] / final_df["ExternalTemperature"]
 
         # Select required columns
-        final_df = merged_df.loc[:, ["TimeStamp", "Temperature", temp_field_name]]
+        final_df = merged_df.loc[:, ["TimeStamp", "Temperature", temp_field_name, "Humidity_internal", "Humidity_external"]]
 
         # Rename columns using .loc to avoid SettingWithCopyWarning
         final_df.loc[:, "Time"] = final_df["TimeStamp"]
         final_df.loc[:, "InternalTemperature"] = final_df["Temperature"]
         final_df.loc[:, "ExternalTemperature"] = final_df[temp_field_name]
+        final_df.loc[:, "InternalHumidity"] = final_df["Humidity_internal"]
+        final_df.loc[:, "ExternalHumidity"] = final_df["Humidity_external"]
+
+        # Calculate the difference
+        final_df.loc[:, "TemperatureDifference"] = final_df["InternalTemperature"] - final_df["ExternalTemperature"]
+        final_df.loc[:, "ProportionalTemperatureDifference"] = final_df["TemperatureDifference"] / final_df["ExternalTemperature"]
+        final_df.loc[:, "HumidityDifference"] = final_df["InternalHumidity"] - final_df["ExternalHumidity"]
+        final_df.loc[:, "ProportionalHumidityDifference"] = final_df["HumidityDifference"] / final_df["ExternalHumidity"]
 
         # Drop the original columns to avoid confusion
         final_df = final_df.drop(columns=["TimeStamp", "Temperature", temp_field_name])
