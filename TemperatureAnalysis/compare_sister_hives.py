@@ -134,14 +134,13 @@ def perform_mann_whitney_test(sister_hives: list[tuple[pd.DataFrame, pd.DataFram
     return results
 
 
-
 if __name__ == "__main__":
     # sister_hives = death_info.get_2022_opposing_pairs()
-    sister_hives = death_info.get_2022_all_pairs()
-    times_of_death = death_info.get_2022_deaths_early()
+    sister_hives = death_info.get_2023_opposing_pairs()
+    times_of_death = death_info.get_2023_deaths_early(jefferson_hives=False)
 
     cd = CollectData()
-    sister_hives_dfs = get_sister_dataframes(sister_hives, times_of_death, True)
+    sister_hives_dfs = get_sister_dataframes(sister_hives, times_of_death, True, year=2023)
 
     results = []
     print("\nT-Test Results\n")
@@ -153,11 +152,17 @@ if __name__ == "__main__":
         #     print(f"{sister_hives[i][0]} and {sister_hives[i][1]} have different lengths")
         #     continue
 
-        sister_hives_dfs[i][0]['TemperatureDifference'] = sister_hives_dfs[i][0]['TemperatureDifference'].abs()
-        sister_hives_dfs[i][1]['TemperatureDifference'] = sister_hives_dfs[i][1]['TemperatureDifference'].abs()
+        sister_hives_dfs[i][0]['TemperatureDifference'] = sister_hives_dfs[i][0]['TemperatureDifference']
+        sister_hives_dfs[i][1]['TemperatureDifference'] = sister_hives_dfs[i][1]['TemperatureDifference']
         stat_temp, p_value_temp, stat_humid, p_value_humid = test_difference(sister_hives_dfs[i][0],
                                                                              sister_hives_dfs[i][1])
         combined_p_value = combine_p_values([p_value_temp, p_value_humid])
+
+        survived_std = sister_hives_dfs[i][0]['InternalTemperature'].std()
+        died_std = sister_hives_dfs[i][1]['InternalTemperature'].std()
+
+        survived_mean = sister_hives_dfs[i][0]['InternalTemperature'].mean()
+        died_mean = sister_hives_dfs[i][1]['InternalTemperature'].mean()
 
         results.append({
             "Surviving Hive": sister_hives[i][0],
@@ -166,7 +171,9 @@ if __name__ == "__main__":
             "Temperature p-value": p_value_temp,
             "Humidity Statistic": stat_humid,
             "Humidity p-value": p_value_humid,
-            "Combined p-value": combined_p_value
+            "Combined p-value": combined_p_value,
+            "Std Temp diff": survived_std - died_std,
+            "Mean Temp diff": survived_mean - died_mean
         })
     # Convert results to DataFrame
     results_df = pd.DataFrame(results)
@@ -181,6 +188,13 @@ if __name__ == "__main__":
     for i, (stat_temp, p_value_temp, stat_humid, p_value_humid) in enumerate(
             perform_mann_whitney_test(sister_hives_dfs)):
         combined_p_value = combine_p_values([p_value_temp, p_value_humid])
+
+        survived_std = sister_hives_dfs[i][0]['InternalHumidity'].std()
+        died_std = sister_hives_dfs[i][1]['InternalHumidity'].std()
+
+        survived_mean = sister_hives_dfs[i][0]['InternalHumidity'].mean()
+        died_mean = sister_hives_dfs[i][1]['InternalHumidity'].mean()
+
         results.append({
             "Surviving Hive": sister_hives[i][0],
             "Died Hive": sister_hives[i][1],
@@ -188,7 +202,9 @@ if __name__ == "__main__":
             "Temperature p-value": p_value_temp,
             "Humidity Statistic": stat_humid,
             "Humidity p-value": p_value_humid,
-            "Combined p-value": combined_p_value
+            "Combined p-value": combined_p_value,
+            "Std Humid diff": survived_std - died_std,
+            "Mean Humid diff": survived_mean - died_mean
         })
 
     # Convert results to DataFrame

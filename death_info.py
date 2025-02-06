@@ -187,6 +187,8 @@ def get_2023_deaths_early(jefferson_hives: bool = True, belgium_hives: bool = Fa
     if belgium_hives:
         deaths["AppMAIS15R"] = datetime(2023, 11, 15)
 
+    return deaths
+
 
 def get_2023_deaths_late(jefferson_hives: bool = True, belgium_hives: bool = False):
     deaths = {
@@ -210,9 +212,10 @@ def get_2023_deaths_late(jefferson_hives: bool = True, belgium_hives: bool = Fal
 
 def get_2023_opposing_pairs(jefferson_hives: bool = True, belgium_hives: bool = False) -> list[tuple[str, str]]:
     pairs = [
+        ("AppMAIS4LB", "AppMAIS4RB"),
         ("AppMAIS5LB", "AppMAIS5R"),
         ("AppMAIS8R", "AppMAIS8LB"),
-        ("AppMAIS13R", "AppMAIS13L")
+        ("AppMAIS13R", "AppMAIS13L"),
     ]
     if jefferson_hives:
         pairs += [
