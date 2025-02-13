@@ -132,15 +132,52 @@ class CollectData:
             final_df = self.get_temp_dataframe_averaged_by_day(final_df)
         return final_df
 
-    def get_temp_dataframe_averaged_by_day(self, df: pd.DataFrame) -> pd.DataFrame:
+    def get_rms_dataframe(self, hivename: str, start_date: datetime = None, end_date: datetime = None,
+                          average_by_day: bool = False):
+        col = self.db.get_collection("AudioMetrics")
+        query = {"HiveName": hivename}
+        if start_date and end_date:
+            query["TimeStamp"] = {"$lt": end_date, "$gte": start_date}
+        elif start_date:
+            query["TimeStamp"] = {"$gte": start_date}
+        elif end_date:
+            query["TimeStamp"] = {"$lt": end_date}
+
+        records = list(col.find(query))
+        if not records:
+            raise ValueError("No records found in AudioMetrics collection for the given criteria.")
+
+        df = pd.DataFrame(records)
+        df = df[['TimeStamp', 'MedMagSpecRMS']]
+
+        if average_by_day:
+            df = self.get_temp_dataframe_averaged_by_day(df, False)
+        return df
+
+    def merge_temp_rms(self, temp_df: pd.DataFrame, rms_df: pd.DataFrame) -> pd.DataFrame:
+        merged_df = pd.merge_asof(
+            temp_df.sort_values("Time"),
+            rms_df.sort_values("TimeStamp"),
+            left_on="Time",
+            right_on="TimeStamp",
+            direction="nearest"
+        )
+
+        # Drop the original columns to avoid confusion
+        merged_df = merged_df.drop(columns=["TimeStamp"])
+
+        return merged_df
+
+    def get_temp_dataframe_averaged_by_day(self, df: pd.DataFrame, is_temp: bool = True) -> pd.DataFrame:
+        time_var_name = 'Time' if is_temp else 'TimeStamp'
         # Ensure the Time column is a datetime object
-        df['Time'] = pd.to_datetime(df['Time'])
+        df[time_var_name] = pd.to_datetime(df[time_var_name])
 
         # Extract the date part from the Time column
-        df['Date'] = df['Time'].dt.date
+        df['Date'] = df[time_var_name].dt.date
 
         # Group by the Date and calculate the mean for each day
-        daily_avg_df = df.groupby('Date').mean().reset_index()
+        daily_avg_df = (df.groupby('Date').mean().reset_index())
 
         return daily_avg_df
 
