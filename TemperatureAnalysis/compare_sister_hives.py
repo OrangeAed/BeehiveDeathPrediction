@@ -15,7 +15,8 @@ def get_sister_dataframes(hives: list[tuple[str, str]], times_of_death, avg_by_d
     start_and_end_dates = death_info.get_start_and_end_dates(year)
     for surviving_hive, died_hive in hives:
         end_date = times_of_death[died_hive] if died_hive in times_of_death else start_and_end_dates["end"]
-        start_date = max(start_and_end_dates["start"], end_date - pd.Timedelta(days=90))
+        # start_date = max(start_and_end_dates["start"], end_date - pd.Timedelta(days=90))
+        start_date = start_and_end_dates["start"]
         surviving_df = cd.get_temp_dataframe(surviving_hive, start_date, end_date, avg_by_day, True)
         died_df = cd.get_temp_dataframe(died_hive, start_date, end_date, avg_by_day, True)
         if include_rms:
@@ -153,8 +154,8 @@ def perform_mann_whitney_test(sister_hives: list[tuple[pd.DataFrame, pd.DataFram
 
 
 if __name__ == "__main__":
-    sister_hives = death_info.get_2022_all_pairs(jefferson_hives=True)
-    # sister_hives = death_info.get_2022_opposing_pairs()
+    # sister_hives = death_info.get_2022_all_pairs(jefferson_hives=True)
+    sister_hives = death_info.get_2022_opposing_pairs()
     # sister_hives = death_info.get_2023_opposing_pairs()
     times_of_death = death_info.get_2022_deaths_early(jefferson_hives=False)
 
@@ -175,7 +176,7 @@ if __name__ == "__main__":
         sister_hives_dfs[i][1]['TemperatureDifference'] = sister_hives_dfs[i][1]['TemperatureDifference']
         stat_temp, p_value_temp, stat_humid, p_value_humid, stat_rms, p_value_rms = test_difference(sister_hives_dfs[i][0],
                                                                              sister_hives_dfs[i][1])
-        combined_p_value = combine_p_values([p_value_temp, p_value_humid, p_value_rms])
+        combined_p_value = combine_p_values([p_value_temp, p_value_humid])
 
         survived_std = sister_hives_dfs[i][0]['InternalTemperature'].std()
         died_std = sister_hives_dfs[i][1]['InternalTemperature'].std()
@@ -208,7 +209,7 @@ if __name__ == "__main__":
     print("\nMann-Whitney U Test Results\n")
     for i, (stat_temp, p_value_temp, stat_humid, p_value_humid, stat_rms, p_value_rms) in enumerate(
             perform_mann_whitney_test(sister_hives_dfs)):
-        combined_p_value = combine_p_values([p_value_temp, p_value_humid, p_value_rms])
+        combined_p_value = combine_p_values([p_value_temp, p_value_humid])
 
         survived_std = sister_hives_dfs[i][0]['InternalHumidity'].std()
         died_std = sister_hives_dfs[i][1]['InternalHumidity'].std()
