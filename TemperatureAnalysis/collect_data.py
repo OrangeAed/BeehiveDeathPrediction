@@ -110,20 +110,26 @@ class CollectData:
         )
 
         # Select required columns
-        final_df = merged_df.loc[:, ["TimeStamp", "Temperature", temp_field_name, "Humidity_internal", "Humidity_external"]]
+        if include_humid:
+            final_df = merged_df.loc[:, ["TimeStamp", "Temperature", temp_field_name, "Humidity_internal", "Humidity_external"]]
+        else:
+            final_df = merged_df.loc[:, ["TimeStamp", "Temperature", temp_field_name]]
 
         # Rename columns using .loc to avoid SettingWithCopyWarning
         final_df.loc[:, "Time"] = final_df["TimeStamp"]
         final_df.loc[:, "InternalTemperature"] = final_df["Temperature"]
         final_df.loc[:, "ExternalTemperature"] = final_df[temp_field_name]
-        final_df.loc[:, "InternalHumidity"] = final_df["Humidity_internal"]
-        final_df.loc[:, "ExternalHumidity"] = final_df["Humidity_external"]
+        if include_humid:
+            final_df.loc[:, "InternalHumidity"] = final_df["Humidity_internal"]
+            final_df.loc[:, "ExternalHumidity"] = final_df["Humidity_external"]
 
         # Calculate the difference
         final_df.loc[:, "TemperatureDifference"] = final_df["InternalTemperature"] - final_df["ExternalTemperature"]
         final_df.loc[:, "ProportionalTemperatureDifference"] = final_df["TemperatureDifference"] / final_df["ExternalTemperature"]
-        final_df.loc[:, "HumidityDifference"] = final_df["InternalHumidity"] - final_df["ExternalHumidity"]
-        final_df.loc[:, "ProportionalHumidityDifference"] = final_df["HumidityDifference"] / final_df["ExternalHumidity"]
+
+        if include_humid:
+            final_df.loc[:, "HumidityDifference"] = final_df["InternalHumidity"] - final_df["ExternalHumidity"]
+            final_df.loc[:, "ProportionalHumidityDifference"] = final_df["HumidityDifference"] / final_df["ExternalHumidity"]
 
         # Drop the original columns to avoid confusion
         final_df = final_df.drop(columns=["TimeStamp", "Temperature", temp_field_name])
