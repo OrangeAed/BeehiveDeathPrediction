@@ -18,19 +18,21 @@ def get_sister_dataframes(hives: list[tuple[str, str]], times_of_death, avg_by_d
         # start_date = max(start_and_end_dates["start"], end_date - pd.Timedelta(days=90))
         start_date = start_and_end_dates["start"]
         surviving_df = cd.get_temp_dataframe(surviving_hive, start_date, end_date, avg_by_day, True)
+        cd.dataframe_to_csv(surviving_df, f"data/averaged/{surviving_hive}-S.csv")
         died_df = cd.get_temp_dataframe(died_hive, start_date, end_date, avg_by_day, True)
-        if include_rms:
-            try:
-                surviving_rms = cd.get_rms_dataframe(surviving_hive, start_date, end_date, avg_by_day)
-                surviving_df = cd.merge_temp_rms(surviving_df, surviving_rms)
-            except ValueError:
-                print(f"No RMS data found for {surviving_hive}")
+        cd.dataframe_to_csv(died_df, f"data/averaged/{died_hive}-D.csv")
+        # if include_rms:
+        #     try:
+        #         surviving_rms = cd.get_rms_dataframe(surviving_hive, start_date, end_date, avg_by_day)
+        #         surviving_df = cd.merge_temp_rms(surviving_df, surviving_rms)
+        #     except ValueError:
+        #         print(f"No RMS data found for {surviving_hive}")
 
-            try:
-                died_rms = cd.get_rms_dataframe(died_hive, start_date, end_date, avg_by_day)
-                died_df = cd.merge_temp_rms(died_df, died_rms)
-            except ValueError:
-                print(f"No RMS data found for {died_hive}")
+            # try:
+            #     died_rms = cd.get_rms_dataframe(died_hive, start_date, end_date, avg_by_day)
+            #     died_df = cd.merge_temp_rms(died_df, died_rms)
+            # except ValueError:
+            #     print(f"No RMS data found for {died_hive}")
 
         sister_hives.append((surviving_df, died_df))
 
@@ -67,9 +69,9 @@ def test_difference(survived: pd.DataFrame, died: pd.DataFrame):
     # Perform the t-test
     stat_temp, p_value_temp = ttest_rel(survived['TemperatureDifference'], died['TemperatureDifference'])
     stat_humid, p_value_humid = ttest_rel(survived['HumidityDifference'], died['HumidityDifference'])
-    stat_rms, p_value_rms = ttest_rel(survived['MedMagSpecRMS'], died['MedMagSpecRMS'])
+    # stat_rms, p_value_rms = ttest_rel(survived['MedMagSpecRMS'], died['MedMagSpecRMS'])
 
-    return stat_temp, p_value_temp, stat_humid, p_value_humid, stat_rms, p_value_rms
+    return stat_temp, p_value_temp, stat_humid, p_value_humid
 
 
 def combine_p_values(p_values):
@@ -146,9 +148,9 @@ def perform_mann_whitney_test(sister_hives: list[tuple[pd.DataFrame, pd.DataFram
 
         stat_humid, p_value_humid = mannwhitneyu(survived_humid_diff, died_humid_diff, alternative='greater')
 
-        stat_rms, p_value_rms = mannwhitneyu(surviving_df['MedMagSpecRMS'], died_df['MedMagSpecRMS'], alternative='greater')
+        # stat_rms, p_value_rms = mannwhitneyu(surviving_df['MedMagSpecRMS'], died_df['MedMagSpecRMS'], alternative='greater')
 
-        results.append((stat_temp, p_value_temp, stat_humid, p_value_humid, stat_rms, p_value_rms))
+        results.append((stat_temp, p_value_temp, stat_humid, p_value_humid))
 
     return results
 
@@ -174,7 +176,7 @@ if __name__ == "__main__":
 
         sister_hives_dfs[i][0]['TemperatureDifference'] = sister_hives_dfs[i][0]['TemperatureDifference']
         sister_hives_dfs[i][1]['TemperatureDifference'] = sister_hives_dfs[i][1]['TemperatureDifference']
-        stat_temp, p_value_temp, stat_humid, p_value_humid, stat_rms, p_value_rms = test_difference(sister_hives_dfs[i][0],
+        stat_temp, p_value_temp, stat_humid, p_value_humid = test_difference(sister_hives_dfs[i][0],
                                                                              sister_hives_dfs[i][1])
         combined_p_value = combine_p_values([p_value_temp, p_value_humid])
 
@@ -191,14 +193,16 @@ if __name__ == "__main__":
             "Temperature p-value": p_value_temp,
             "Humidity Statistic": stat_humid,
             "Humidity p-value": p_value_humid,
-            "RMS Statistic": stat_rms,
-            "RMS p-value": p_value_rms,
+            # "RMS Statistic": stat_rms,
+            # "RMS p-value": p_value_rms,
             "Combined p-value": combined_p_value,
             "Std Temp diff": survived_std - died_std,
             "Mean Temp diff": survived_mean - died_mean
         })
     # Convert results to DataFrame
     results_df = pd.DataFrame(results)
+
+    cd.dataframe_to_csv(results_df, 't-test-results.csv')
     # Print the DataFrame in a tabular format
     print(results_df.to_string(index=False))
 
@@ -207,7 +211,7 @@ if __name__ == "__main__":
 
     results = []
     print("\nMann-Whitney U Test Results\n")
-    for i, (stat_temp, p_value_temp, stat_humid, p_value_humid, stat_rms, p_value_rms) in enumerate(
+    for i, (stat_temp, p_value_temp, stat_humid, p_value_humid) in enumerate(
             perform_mann_whitney_test(sister_hives_dfs)):
         combined_p_value = combine_p_values([p_value_temp, p_value_humid])
 
@@ -224,8 +228,8 @@ if __name__ == "__main__":
             "Temperature p-value": p_value_temp,
             "Humidity Statistic": stat_humid,
             "Humidity p-value": p_value_humid,
-            "RMS Statistic": stat_rms,
-            "RMS p-value": p_value_rms,
+            # "RMS Statistic": stat_rms,
+            # "RMS p-value": p_value_rms,
             "Combined p-value": combined_p_value,
             "Std Humid diff": survived_std - died_std,
             "Mean Humid diff": survived_mean - died_mean
@@ -233,6 +237,8 @@ if __name__ == "__main__":
 
     # Convert results to DataFrame
     results_df = pd.DataFrame(results)
+
+    cd.dataframe_to_csv(results_df, 'mann-u-results.csv')
 
     # Print the DataFrame in a tabular format
     print(results_df.to_string(index=False))
