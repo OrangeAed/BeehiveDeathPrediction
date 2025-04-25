@@ -5,8 +5,6 @@ from keras import layers, callbacks, Sequential
 from keras.src.optimizers import Adam
 from datetime import datetime
 import logging
-
-from TemperatureAnalysis.collect_data import CollectData
 from RNN_helpers import collect_data, save_data, getXY
 
 def setup_logging(log_file='rnn_training.log'):
